@@ -5,9 +5,9 @@ from urllib3.util.retry import Retry
 from requests import ReadTimeout, ConnectTimeout, HTTPError, Timeout, ConnectionError
 import pandas as pd
 import os
-import requests
+# import requests
 
-import urllib3
+# import urllib3
 
 
 ## handle exception properly
