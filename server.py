@@ -13,7 +13,7 @@ import tornado.ioloop
 from perspective import Table, PerspectiveManager, PerspectiveTornadoHandler
 
 from dataValuation import collectApiData
-from dataProcessing import welcome_survey,e_survey,match_1,match_2, mall_survey
+from dataProcessing import welcome_survey,e_survey,match_1,match_2, mall_survey, survey
 # from dataprocessing1 import mall_survey
 
 
@@ -28,7 +28,9 @@ s = requests.Session()
 # set survey id to change surveys
 survey_id = 78
 
-df = collectApiData(session=s, apitype="answers",token=token, survey_id = survey_id )
+apitype = "answers"
+
+df = collectApiData(session=s, apitype=apitype,token=token, survey_id = survey_id )
 # df1 = pd.DataFrame()
 # df2 = pd.DataFrame()
 
@@ -58,17 +60,23 @@ limit = 0
 
 def data_source():
     global limit
-    if survey_id == 1:
-        data = welcome_survey(limit=limit,df=df)
-    elif survey_id == 78:
-        data = mall_survey(limit=limit,df=df)
-    elif survey_id == 79:
-        data = e_survey(limit= limit,df=df)
-    elif survey_id == 94:
-        data = match_2(limit= limit,df=df)
-    elif survey_id == 95:
-        data = match_1(limit= limit,df=df)
-    
+    global df
+    if apitype =="answers":
+        df = collectApiData(session=s, apitype=apitype,token=token, survey_id = survey_id)
+        if survey_id == 1:
+            data = welcome_survey(limit=limit,df=df)
+        elif survey_id == 78:
+            data = mall_survey(limit=limit,df=df)
+        elif survey_id == 79:
+            data = e_survey(limit= limit,df=df)
+        elif survey_id == 94:
+            data = match_2(limit= limit,df=df)
+        elif survey_id == 95:
+            data = match_1(limit= limit,df=df)
+    else:
+        df = collectApiData(session=s, apitype=apitype,token=token)
+        data = survey(df=df)
+
     return data
 
 
@@ -78,8 +86,9 @@ def perspective_thread(manager):
     in the front-end."""
     psp_loop = tornado.ioloop.IOLoop()
     manager.set_loop_callback(psp_loop.add_callback)
-    if survey_id == 1:
-        table = Table(
+    if apitype == "answers":
+        if survey_id == 1:
+            table = Table(
                 {
                     "0": str,
                     "1": str,
@@ -89,10 +98,10 @@ def perspective_thread(manager):
                     "5": str,
                     "6": str,
                 },
-                limit = len[df]
+                limit = len(df)
             )
-    elif survey_id == 78:
-        table= Table(
+        elif survey_id == 78:
+            table= Table(
                 {
                     "0": str,
                     "1": str,
@@ -107,8 +116,8 @@ def perspective_thread(manager):
                 },
                 limit = len(df)
             )
-    elif survey_id==79:
-        table= Table(
+        elif survey_id==79:
+            table= Table(
                 {
                     "0": str,
                     "1": str,
@@ -119,24 +128,36 @@ def perspective_thread(manager):
                     "6": str,
                     "7": str,
                 },
-                limit = len[df]
+                limit = len(df)
             )
-    elif survey_id==94:
+        elif survey_id==94:
             table= Table(
                 {
                     "0": str,
                     "1": str,
                 },
-                limit = len[df]
+                limit = len(df)
             )
-    elif survey_id==95:
+        elif survey_id==95:
             table= Table(
                 {
                     "0": str,
                     "1": str,
                 },
-                limit = len[df]
+                limit = len(df)
             )
+    else:
+        table= Table(
+            {
+                "id": int,
+                "title": str,
+                "questionCount": int,
+                "totalTfb": int,
+                # "participantLimit": int,
+                "answerCount": int,
+            },
+            limit = len(df)
+        )
 
     # Track the table with the name "data_source_one", which will be used in
     # the front-end to access the Table.
@@ -145,12 +166,15 @@ def perspective_thread(manager):
     # update with new data every 50ms
     def updater():
         global limit
-        if limit + 100 < len(df):
-            table.update(data_source())
-            limit = limit+100
+        if apitype == "answers":
+            if limit + 100 < len(df):
+                table.update(data_source())
+                limit = limit+100
+            else:
+                limit = 0
+                # callback.stop()
+                table.replace(data_source())
         else:
-            limit = 0
-            # callback.stop()
             table.replace(data_source())
             
 
@@ -191,9 +215,12 @@ def make_app():
     )
 
 
-if __name__ == "__main__":
+def main():
     app = make_app()
     app.listen(8080)
     logging.critical("Listening on http://localhost:8080")
     loop = tornado.ioloop.IOLoop.current()
     loop.start()
+
+if __name__ == "__main__":
+    main()

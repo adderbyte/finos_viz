@@ -589,3 +589,10 @@ def e_survey(limit, df):
 
         # Return the dataframe
         return a
+
+def survey(df):
+    for i in range(len(df)):
+        df['title'][i] = df['title'][i]['tr']
+    df = df.drop(columns = ['description', 'image', 'answerable', 'participantLimit'])
+    # df = df.dropna()
+    return df
