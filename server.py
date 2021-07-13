@@ -18,7 +18,7 @@ from dataProcessing import welcome_survey,e_survey,match_1,match_2, mall_survey,
 
 
 ### data token
-token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVkZW50aWFscyI6InByaXZhdGUtZGF0YS1wbGF0Zm9ybS1rZXkgZm9yIGFscGhhIiwiY3JlYXRlZEF0IjoiMjAyMS0wNi0yOFQxODoxNjoyOC4yNThaIiwiaWF0IjoxNjI0OTA0MTg4fQ.ITcG3EO90Uzc9JZYjE6g5mbmh4kkHBDO6QEumQ8ZruQ"
+token = ""
 
 
 ### session that can be reused for the answer or survey api type
@@ -172,8 +172,8 @@ def perspective_thread(manager):
                 limit = limit+100
             else:
                 limit = 0
-                # callback.stop()
-                table.replace(data_source())
+                callback.stop()
+                # table.replace(data_source())
         else:
             table.replace(data_source())
             
